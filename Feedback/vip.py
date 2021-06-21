@@ -1,0 +1,2 @@
+class VIP:
+    pass
