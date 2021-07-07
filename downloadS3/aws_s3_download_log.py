@@ -42,14 +42,14 @@ while True:
 
     # 将大于10的日志处理为 90，91...
     if len(list_download) >= 10:
+        print("日志大于10条，稍等.....")
         for i in range(0, len(list_download)):
             if list_download[i][-2] == '1':
                 ls = list(list_download[i])
                 ls[-2] = '9'
-                # list_download[i] = ''.join(ls)
                 x = ''.join(ls)
                 os.system("mv " + download_path + list_download[i] + " " + download_path + x)
-    #大于20还未处理，遇到再进行处理 :insert 9
+    # 大于20还未处理，遇到再进行处理 :insert 9
     zip_name = download_path + list_download[0][:-2]
     zip_path = dir
     os.system("cat " + zip_name + ".* > " + zip_name)

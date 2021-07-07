@@ -141,22 +141,70 @@ class basic_API:
     }
         r = requests.post(url=url, headers=header, data=json.dumps(body), cert=nas)
 
+# 批量获取用户id
+def getuserid_many():
+    url = "https://dev.apiteamn.com/api-getway/login"
+    password = md5(("johnny" + "9BE72424-F231-477D-B4E4-0DEEE7E52606").encode()).hexdigest()
+    user_names = []
+    user_ids = []
+    for i in range(300, 320):
+        user_names.append('johnny' + str(i))
+    for user_name in user_names:
+        user_name = user_name + "@gmail.com"
+        body = {
+                "platform_id": user_name,
+                "platform": 0,
+                "token": password,
+                "device": {
+                    "device_id": "johnny9999",
+                    "device_type": 3,
+                    "machine": "postman",
+                    "language": "en-CN;q=1, zh-Hans-CN;q=0.9, ja-CN;q=0.8",
+                    "os_version": "1.0.0",
+                    "device_token": "{{device_token}}",
+                    "vpn_on": True,
+                    "app_build": 60200
+                }
+        }
+        r = requests.post(url, json.dumps(body), cert=woop)
+        print(r.json())
+        user_id = r.json()['data']['user']['user_id']
+        user_ids.append(user_id)
+    return user_ids
+
+def block_many(user_ids):
+    url = "https://dev.apiteamn.com/api-getway/user/block/add"
+    auth_token = "Bearer " + "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjIjoxNjI1NjIyODQ2LCJleHAiOjE2MjYyMjc2NDYsImlkIjoiNjBjOTYyZmJlNTQyY2EyMThlMDY3NDUxIiwidiI6MX0.YSadl-HyGMIT5aLGgtCytL5oIx7DHG2vIDPIlkiAEIw"
+    header = {"Authorization": auth_token}
+    for user_id in user_ids:
+        body = {
+            "target_id": user_id
+        }
+        r = requests.post(url=url, headers=header, data=json.dumps(body), cert=woop)
+        print(r.json())
+
 if __name__ == "__main__":
     ba = basic_API()
     data = ba.login()  # 登录
-    # print(ba.get_pic_url("2021/05/19/60a47dadc906878e418a5fdb"))
     token = ba.get_token(data)
-    pic_url = ba.image("01.jpeg")
-    number = ba.get_number(token)
-    res = ba.sign_up(int(number)+1, pic_url)
-    uid = res['data']['user']['user_id']
-    authorization = res['data']['token']
-    print(res)
-    sleep(2)
-    ba.change_status(uid, authorization, pic_url, 1, 2030)
+    user_ids = getuserid_many()
+    # user_ids = ["60c95d7de542ca218e067449", "60c95d2ee542ca218e067447", "60c95b4be542ca218e067445",
+    #             "60c96197e542ca218e06744d", "60c96485e542ca218e067457", "60c968aae542ca218e06745e",
+    #             "60c97484e542ca218e06746b", "60c9995ee542ca218e067478", "60c99e53e542ca218e06747e",
+    #             "60c99ea2e542ca218e067480", "60c99ea2e542ca218e067480", "60c9a001e542ca218e067481"]
+    block_many(user_ids)
+    # pic_url = ba.image("01.jpeg")
+    # number = ba.get_number(token)
+    # res = ba.sign_up(int(number)+1, pic_url)
+    # uid = res['data']['user']['user_id']
+    # authorization = res['data']['token']
+    # print(res)
+    # sleep(2)
+    # ba.change_status(uid, authorization, pic_url, 1, 2030)
+    #
+    # # pic_url = "2021/05/30/60b35edcc906878e418a636c"
+    # # uid = "60b35ee720112023295d1465"
+    # # authorization = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjIjoxNjIyNDQ1Njc5LCJleHAiOjE2MjMwNTA0NzksImlkIjoiNjBiMzVlZTcyMDExMjAyMzI5NWQxNDY1IiwidiI6MX0.I1veImNeht9_PJDSeD2K63Mp6hchWhWhtjqv5BOGmV0"
+    # # ba.change_status(uid, authorization, pic_url, 1, 1020)
 
-    # pic_url = "2021/05/30/60b35edcc906878e418a636c"
-    # uid = "60b35ee720112023295d1465"
-    # authorization = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjIjoxNjIyNDQ1Njc5LCJleHAiOjE2MjMwNTA0NzksImlkIjoiNjBiMzVlZTcyMDExMjAyMzI5NWQxNDY1IiwidiI6MX0.I1veImNeht9_PJDSeD2K63Mp6hchWhWhtjqv5BOGmV0"
-    # ba.change_status(uid, authorization, pic_url, 1, 1020)
 
