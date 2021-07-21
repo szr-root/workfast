@@ -2,13 +2,25 @@ import os
 import boto3
 
 
+env_list = ['wooplus-prod-client-log', 'wooplus-stage-client-log']
+
+now = 'prod'
+
+
+if now == 'prod':
+    env = env_list[0]
+else:
+    env = env_list[1]
+
+# env = 'wooplus-stage-client-log'
+
 s3 = boto3.resource('s3')
 print("输入时间（空格）用户id，例如：2021-02-20 57ea449d7748abb7428b456a")
 while True:
     t_u = input().split()
     print(t_u)
     download_path = '/Users/pof/Downloads/feedback/'  # 修改为自己的保存路径
-    log = 'wooplus-prod-client-log'
+    log = env  # 'wooplus-prod-client-log'
     t = '/' + t_u[0]
     user_id = '/' + t_u[1]
     Prefix = 'logs' + t + user_id
@@ -38,7 +50,7 @@ while True:
         continue
 
     for i in list_download:
-        s3.Bucket("wooplus-prod-client-log").download_file(i, download_path + i)
+        s3.Bucket(env).download_file(i, download_path + i)  # "wooplus-prod-client-log"
 
     # 将大于10的日志处理为 90，91...
     if len(list_download) >= 10:
