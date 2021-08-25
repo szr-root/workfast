@@ -4,19 +4,23 @@ import boto3
 
 env_list = ['wooplus-prod-client-log', 'wooplus-stage-client-log']
 
-now = 'prod'
+now = 'dev'
+words = ''
 
 
 if now == 'prod':
     env = env_list[0]
+    words = '现在生产站'
 else:
     env = env_list[1]
+    words = '现在测试站'
 
 # env = 'wooplus-stage-client-log'
 
 s3 = boto3.resource('s3')
 print("输入时间（空格）用户id，例如：2021-02-20 57ea449d7748abb7428b456a")
 while True:
+    print(words)
     t_u = input().split()
     print(t_u)
     download_path = '/Users/pof/Downloads/feedback/'  # 修改为自己的保存路径

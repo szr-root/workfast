@@ -1,5 +1,6 @@
 import base64
 import json
+import random
 from hashlib import md5
 from time import sleep
 
@@ -13,10 +14,6 @@ woop_key = "/Users/pof/PycharmProjects/workfast/check_status/client.key.nopwd.pe
 nas = (nas_cert, nas_key)
 woop = (woop_cert, woop_key)
 urllib3.disable_warnings()
-
-
-# !!!!
-# 使用的场景 dev--0   prod--1
 
 
 class basic_API:
@@ -75,7 +72,7 @@ class basic_API:
             "platform": 0,
             "token": password,
             "device": {
-                "device_id": user_name,
+                "device_id": "device_" + str(user_name),
                 "device_type": 1,
                 "os_version": "6.2.0",
                 "device_token": "000000",
@@ -86,7 +83,7 @@ class basic_API:
             },
             "basic": {
                 "display_name": user_name,
-                "gender": 1,
+                "gender": random.randint(1, 2),
                 "birthday": "1990-04-09",
                 "store": 10,
                 "time_zone": "CST",
@@ -127,12 +124,12 @@ class basic_API:
         accounts = []
         print("关联账号有 " + str(len(account)) + " 个")
         for i in range(0, len(account)):
-            if r.json()['data']['accounts'][i]['status'] == 6:
+            if r.json()['data']['accounts'][i]['status'] == 5:
                 accounts.append(account[i]['id'])
-        print("其中被状态为ban的有" + str(len(accounts)) + " 个")
+        print("其中被状态为ban的有" + str(len(accounts)) + " 个,将对接下来的账号进行恢复normal")
         return accounts
 
-    # make_normal
+    # make_normal 将被ban的账号恢复normal
     def make_normal(self, accounts):
         nas_token = basic_API.get_prod_token(self)
         nas_token = "Bearer " + nas_token
@@ -229,14 +226,16 @@ class basic_API:
         r = requests.post(url=url, headers=header, data=json.dumps(body), cert=nas)
 
 
-# 批量获取用户id
-def getuserid_many():
+# 获取批量用户info,将name，id，token写入文件
+def get_many_userinfo(arry):
     url = "https://dev.apiteamn.com/api-getway/login"
     password = md5(("johnny" + "9BE72424-F231-477D-B4E4-0DEEE7E52606").encode()).hexdigest()
     user_names = []
-    user_ids = []
-    for i in range(300, 320):
-        user_names.append('johnny' + str(i))
+    tokens = []
+    names = []
+    ids = []
+    for i in range(arry[0], arry[1]):
+        user_names.append('johnny_autotets' + str(i))
     for user_name in user_names:
         user_name = user_name + "@gmail.com"
         body = {
@@ -244,7 +243,7 @@ def getuserid_many():
             "platform": 0,
             "token": password,
             "device": {
-                "device_id": "johnny9999",
+                "device_id": "device_" + user_name,
                 "device_type": 3,
                 "machine": "postman",
                 "language": "en-CN;q=1, zh-Hans-CN;q=0.9, ja-CN;q=0.8",
@@ -256,9 +255,45 @@ def getuserid_many():
         }
         r = requests.post(url, json.dumps(body), cert=woop)
         print(r.json())
-        user_id = r.json()['data']['user']['user_id']
-        user_ids.append(user_id)
-    return user_ids
+        token = r.json()['data']['token']
+        name = r.json()['data']['user']['display_name']
+        _id = r.json()['data']['user']['user_id']
+        # ids.append(_id)
+        # names.append(name)
+        auth_token = "Bearer " + token
+        # tokens.append(auth_token)
+        with open("../user_data/user_name.txt", 'a') as f1:
+            f1.write(name + '\n')
+        with open("../user_data/user_id.txt", 'a') as f2:
+            f2.write(_id + '\n')
+        with open("../user_data/user_token.txt", 'a') as f3:
+            f3.write(auth_token + '\n')
+    # return [names, ids, tokens]
+
+
+# 如果token过期了可以直接只保存token
+def refresh_token():
+    pass
+
+
+# 获取profile并修改后台状态
+def get_profile():
+    with open('../user_data/user_token.txt', 'r') as f:
+        tokens = f.readlines()
+    with open('../user_data/user_id.txt', 'r') as f2:
+        ids = f2.readlines()
+    nas_token = basic_API().get_nas_token()
+    for i in range(0, 101):
+        auth_token = tokens[i].replace("\n", "")
+        uid = ids[i].replace("\n", "")
+        header = {"Authorization": auth_token}
+        url = "https://dev.apiteamn.com/api-getway/user/profile/" + uid
+        r = requests.get(url=url, headers=header, cert=woop)
+        status = r.json()['data']['profile']['album']['portrait']['status']
+        raw_url = r.json()['data']['profile']['album']['portrait']['url']
+        if status == 1:
+            basic_API().change_photostatus(uid, nas_token, raw_url, 0, None)
+            print(r.json()['data']['profile']['basic']['display_name'])
 
 
 # 批量block
@@ -274,6 +309,91 @@ def block_many(user_ids):
         print(r.json())
 
 
+# 被批量like
+def belike_many(userid, arry):
+    with open('../user_data/user_token.txt', 'r') as f:
+        tokens = f.readlines()
+    with open('../user_data/user_name.txt', 'r') as f2:
+        names = f2.readlines()
+    for i in range(arry[0], arry[1]):
+        auth_token = tokens[i].replace("\n", "")
+        name = names[i].replace('\n', '')
+        header = {"Authorization": auth_token}
+        bodys = {"liked": [userid]}
+        r = requests.post(url="https://dev.apiteamn.com/api-getway/cards/slide", headers=header, data=json.dumps(bodys), cert=woop)
+        print(f"ok!{name} liked you!")
+
+
+# 批量say hi
+def sayHi_many(uid, arry):
+    with open('../user_data/user_token.txt', 'r') as f:
+        tokens = f.readlines()
+    for i in range(arry[0], arry[1]):
+        auth_token = tokens[i].replace("\n", "")
+        header = {"Authorization": auth_token}
+        bodys = {
+            "target_id": uid,
+            "type": 2,  # 2-Say Hi  4-VIP会话
+        }
+        r = requests.post(url="https://dev.apiteamn.com/api-getway/conversation/create", headers=header, data=json.dumps(bodys), cert=woop)
+        print(r.json())
+
+
+# 上传图片
+def image(file):
+    url = "https://dev.apiteamn.com/api-getway/image"
+    with open("/Users/pof/PycharmProjects/workfast/NAS/image/" + file, 'rb')as f:
+        pic = {"image": ("01.jpeg", f.read(), "image/jpeg")}
+    body = {}
+    r = requests.post(url=url, data=body, files=pic, cert=woop)
+    return r.json()['data']['url']
+
+
+# 注册一批账号
+def sign_autotest():
+    url = "https://dev.apiteamn.com/api-getway/signup"
+    password = md5(("johnny" + "9BE72424-F231-477D-B4E4-0DEEE7E52606").encode()).hexdigest()
+    for number in range(80, 101):
+        gender = random.randint(1, 2)
+        if gender == 1:
+            image_url = image("male.jpg")
+        else:
+            image_url = image("female.jpg")
+        user_name = "johnny_autotets" + str(number)  # username 是 johnny+number：johnny515
+        body = {
+            "platform_id": user_name + "@gmail.com",
+            "platform": 0,
+            "token": password,
+            "device": {
+                "device_id": "device_" + str(number),
+                "device_type": 1,
+                "os_version": "6.2.0",
+                "device_token": "000000",
+                "vpn_on": False,
+                "machine": "iphone12.5",
+                "language": "en-CN;q=1, zh-Hans-CN;q=0.9, ja-CN;q=0.8",
+                "app_build": 60800
+            },
+            "basic": {
+                "display_name": user_name,
+                "gender": gender,
+                "birthday": "1997-04-09",
+                "store": 10,
+                "time_zone": "CST",
+                "gmt_offset": 28800
+            },
+            "avatar": {
+                "image_name": image_url,
+                "width": 1080,
+                "height": 1080,
+                "face_number": 1
+            }
+        }
+        r = requests.post(url=url, data=json.dumps(body), cert=woop)
+        print(r.json())
+        # return r.json()
+
+
 # 注册+approve
 def signup_approve():
     ba = basic_API()
@@ -283,6 +403,7 @@ def signup_approve():
     signup = ba.sign_up(int(num) + 1, raw_url)  # 注册
     uid = signup['data']['user']['user_id']  # 获取用户id
     ba.change_photostatus(uid, nas_token, raw_url, 0, None)  # approve
+    print("ok")
 
 
 # 注册+强制认证
@@ -300,14 +421,31 @@ def signup_tbv():
 def authvideo():
     ba = basic_API()
     nas_token = ba.get_nas_token()  # nas 登录
-    uids = getuserid_many()
-
 
 
 if __name__ == "__main__":
-    ba = basic_API()
-    ban_id = "6002698378254500b9eb66d1"  # 6079336ad0845d2d5d603e2a johnnyR
-    accounts = ba.get_shared_account(ban_id)
-    print(accounts)
-    # ba.make_normal(accounts)
 
+    """
+    #恢复ban
+    # ba = basic_API()
+    # ban_id = "6002698378254500b9eb66d1"  # 6079336ad0845d2d5d603e2a johnnyR
+    # accounts = ba.get_shared_account(ban_id)
+    # print(accounts)
+    # ba.make_normal(accounts)
+    """
+
+    # belike_many("6124a7f759f2c5f8651576d8", [0, 10])  # 0-100可用
+    # sayHi_many("611dbb20cde406bab071976e", [0, 3])
+    # get_profile()
+
+    # with open('../user_data/user_id.txt', 'r') as f:
+    #     print(f.readlines())
+    #     s = f.readlines()
+    #     for r in s:
+    #         r.replace("\n", "")
+    #     print(s)
+    #     for i in range(0, 3):
+    #         print(f.readlines()[i])
+
+    # print(sign_autotest())
+    # sign_autotest()

@@ -52,6 +52,7 @@ def getuserid_many():
         user_ids.append(user_id)
     return user_ids
 
+
 # 批量block
 def block_many(user_ids):
     url = "https://dev.apiteamn.com/api-getway/user/block/add"
