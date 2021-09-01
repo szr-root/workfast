@@ -23,7 +23,6 @@ class BasicApi:
         use: get_nas_token('prod')
         return： nas登录获取的token
     """
-
     def get_nas_token(self, env):
         if env == 'prod':
             url = "https://nas.apiteamn.com/api/login"
@@ -43,7 +42,6 @@ class BasicApi:
         use: url = image('01.jpeg')
         return： 获取的image的url值
     """
-
     def image(self, env, file):
         if env == 'prod':
             url = "https://apiteamn.com/api-getway/image"
@@ -64,7 +62,6 @@ class BasicApi:
         use: user = sign_up('prod',johnny570,johnny,1,'01.jpeg')
         return： 获取注册后user信息
     """
-
     def sign_up(self, env, username, password, gender, pic):
         if env == 'prod':
             url = "https://dev.apiteamn.com/api-getway/signup"
@@ -111,7 +108,6 @@ class BasicApi:
         use: get_pic_url(img_url,'prod')
         return： base64编码过后实际的url
     """
-
     def get_pic_url(self, img_uri, env):
         if env == 'prod':
             bucket = "wooplus-stage-img"
@@ -168,7 +164,7 @@ class BasicApi:
             'App-Version': 60200,
             "Authorization": token
         }
-        return False
+        pass
 
     """
         desc: 登录接口
@@ -238,134 +234,120 @@ class BasicApi:
             r = requests.post(url=url, headers=header, data=json.dumps(body), cert=woop)
             print(r.json())
 
+    """
+        desc: 被批量like
+        params: userid：被批量like的一群人
+                number：需要被like的数量
+        use:beliked_many(6124704fe5d21dbf9a5e49d3，50)
+        return： null
+    """
+    def beliked_many(self, userid, number):
+        with open('../user_data/user_token.txt', 'r') as f:
+            tokens = f.readlines()
+        with open('../user_data/user_name.txt', 'r') as f2:
+            names = f2.readlines()
+        url = "https://dev.apiteamn.com/api-getway/cards/slide"
+        for i in range(0, number):
+            auth_token = tokens[i].replace("\n", "")
+            name = names[i].replace('\n', '')
+            header = {"Authorization": auth_token}
+            bodys = {"liked": [userid]}
+            r = requests.post(url=url, headers=header, data=json.dumps(bodys),
+                              cert=woop)
+            print(r.json())
+            print(f"ok!{name} liked you!")
 
-# 批量block
-def block_many(user_ids):
-    url = "https://dev.apiteamn.com/api-getway/user/block/add"
-    auth_token = "Bearer " + "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjIjoxNjI1NjIyODQ2LCJleHAiOjE2MjYyMjc2NDYsImlkIjoiNjBjOTYyZmJlNTQyY2EyMThlMDY3NDUxIiwidiI6MX0.YSadl-HyGMIT5aLGgtCytL5oIx7DHG2vIDPIlkiAEIw"
-    header = {"Authorization": auth_token}
-    for user_id in user_ids:
+    """
+        desc: 批量点赞moment
+        params: number：需要被like的数量
+                moment_id，media_id：当前moment则相同，点赞他人评论，则media_id为评论的id
+                target_author：作者的id，名字，性别
+        use:  ba.moment_like(100, "611f27bf20c513ef91a91b17", "611f27bf20c513ef91a91b17",
+                    ["611e1b53935e8dded0b6b2e5", "Ashley2045", 2])
+        return： null
+    """
+    def moment_like(self, number, moment_id, media_id, target_author):
+        with open('../user_data/user_token.txt', 'r') as f:
+            tokens = f.readlines()
+        url = "https://dev.apiteamn.com/api-getway/moment/like"
         body = {
-            "target_id": user_id
+                "moment_id": moment_id,
+                "media_id": media_id,
+                "target_author": {
+                    "id": target_author[0],
+                    "name": target_author[1],
+                    "gender": target_author[2]
+                }
         }
-        r = requests.post(url=url, headers=header, data=json.dumps(body), cert=woop)
-        print(r.json())
+        for i in range(0, number):
+            auth_token = tokens[i].replace("\n", "")
+            header = {"Authorization": auth_token}
+            r = requests.post(url=url, headers=header, data=json.dumps(body), cert=woop)
+            print(r.json())
 
-
-# 被批量like
-def belike_many(userid, arry):
-    with open('../user_data/user_token.txt', 'r') as f:
-        tokens = f.readlines()
-    with open('../user_data/user_name.txt', 'r') as f2:
-        names = f2.readlines()
-    for i in range(arry[0], arry[1]):
-        auth_token = tokens[i].replace("\n", "")
-        name = names[i].replace('\n', '')
-        header = {"Authorization": auth_token}
-        bodys = {"liked": [userid]}
-        r = requests.post(url="https://dev.apiteamn.com/api-getway/cards/slide", headers=header, data=json.dumps(bodys),
-                          cert=woop)
-        print(f"ok!{name} liked you!")
-
-
-# 批量say hi
-def sayHi_many(uid, arry):
-    with open('../user_data/user_token.txt', 'r') as f:
-        tokens = f.readlines()
-    for i in range(arry[0], arry[1]):
-        auth_token = tokens[i].replace("\n", "")
-        header = {"Authorization": auth_token}
-        bodys = {
-            "target_id": uid,
-            "type": 2,  # 2-Say Hi  4-VIP会话
-        }
-        r = requests.post(url="https://dev.apiteamn.com/api-getway/conversation/create", headers=header,
-                          data=json.dumps(bodys), cert=woop)
-        print(r.json())
-
-
-# 上传图片
-def image(file):
-    url = "https://dev.apiteamn.com/api-getway/image"
-    with open("/Users/pof/PycharmProjects/workfast/NAS/image/" + file, 'rb')as f:
-        pic = {"image": ("01.jpeg", f.read(), "image/jpeg")}
-    body = {}
-    r = requests.post(url=url, data=body, files=pic, cert=woop)
-    return r.json()['data']['url']
-
-
-# 注册一批账号
-def sign_autotest():
-    url = "https://dev.apiteamn.com/api-getway/signup"
-    password = md5(("johnny" + "9BE72424-F231-477D-B4E4-0DEEE7E52606").encode()).hexdigest()
-    for number in range(80, 101):
-        gender = random.randint(1, 2)
-        if gender == 1:
-            image_url = image("male.jpg")
-        else:
-            image_url = image("female.jpg")
-        user_name = "johnny_autotets" + str(number)  # username 是 johnny+number：johnny515
+        """
+            desc: 评论moment
+            params: number：需要被like的数量
+                    moment_id，media_id：当前moment则相同，点赞他人评论，则media_id为评论的id
+                    target_author：作者的id，名字，性别
+            use:  ba.moment_like(100, "611f27bf20c513ef91a91b17", "611f27bf20c513ef91a91b17",
+                        ["611e1b53935e8dded0b6b2e5", "Ashley2045", 2])
+            return： null
+        """
+    def comment_moment(self, number, moment_id, media_id, target_author):
+        with open('../user_data/user_token.txt', 'r') as f:
+            tokens = f.readlines()
+        url = "https://dev.apiteamn.com/api-getway/moment/comment"
         body = {
-            "platform_id": user_name + "@gmail.com",
-            "platform": 0,
-            "token": password,
-            "device": {
-                "device_id": "device_" + str(number),
-                "device_type": 1,
-                "os_version": "6.2.0",
-                "device_token": "000000",
-                "vpn_on": False,
-                "machine": "iphone12.5",
-                "language": "en-CN;q=1, zh-Hans-CN;q=0.9, ja-CN;q=0.8",
-                "app_build": 60800
-            },
-            "basic": {
-                "display_name": user_name,
-                "gender": gender,
-                "birthday": "1997-04-09",
-                "store": 10,
-                "time_zone": "CST",
-                "gmt_offset": 28800
-            },
-            "avatar": {
-                "image_name": image_url,
-                "width": 1080,
-                "height": 1080,
-                "face_number": 1
-            }
+                "moment_id": moment_id,
+                "media_id": media_id,  # 一级评论id
+                "content": "好耶！",
+                "target_author": {
+                    "id": target_author[0],
+                    "name": target_author[1],
+                    "gender": target_author[2],
+                    "avatar": None,
+                    "deep_link": None
+                }
+                # "reference": {  # 要at的评论的作者
+                #     "author": {
+                #         "id": target_author[0],
+                #         "name": target_author[1],
+                #         "gender": target_author[2]
+                #     },
+                #     "id": target_author[0],  # 要at的评论id
+                #     "content": "好耶"  # 要at的评论内容
+                # }
         }
-        r = requests.post(url=url, data=json.dumps(body), cert=woop)
-        print(r.json())
-        # return r.json()
-
-
-# 注册+approve
-def signup_approve():
-    ba = basic_API()
-    nas_token = ba.get_nas_token()  # nas 登录
-    num = ba.get_user_dispalyname(nas_token)  # 搜索最新的name序号
-    raw_url = ba.image("01.jpeg")  # 上传图片
-    signup = ba.sign_up(int(num) + 1, raw_url)  # 注册
-    uid = signup['data']['user']['user_id']  # 获取用户id
-    ba.change_photostatus(uid, nas_token, raw_url, 0, None)  # approve
-    print("ok")
-
-
-# 注册+强制认证
-def signup_tbv():
-    ba = basic_API()
-    nas_token = ba.get_nas_token()  # nas 登录
-    num = ba.get_user_dispalyname(nas_token)  # 搜索最新的name序号
-    raw_url = ba.image("01.jpeg")  # 上传图片
-    signup = ba.sign_up(int(num) + 1, raw_url)  # 注册
-    uid = signup['data']['user']['user_id']  # 获取用户id
-    ba.change_photostatus(uid, nas_token, raw_url, 1, 2030)  # tbv
-
-
-# 批量注入视频
-def authvideo():
-    ba = basic_API()
-    nas_token = ba.get_nas_token()  # nas 登录
+        for i in range(0, number):
+            auth_token = tokens[i].replace("\n", "")
+            header = {"Authorization": auth_token}
+            r = requests.post(url=url, headers=header, data=json.dumps(body), cert=woop)
+            print(r.json())
+    """
+        desc: 快速发送moment
+        params: number：需要发送的数量
+        use:  send_moment(10)
+        return： null
+    """
+    def send_moment(self, number):
+        url = "https://dev.apiteamn.com//api-getway/moment/"
+        body = {
+            "kind": 101,
+            "topic_id": "5e0852a7679ece6f95e231f6",
+            "location": {
+                "lat": 30.5971505,
+                "lon": 104.0608851
+            },
+            "address": "Chengdu Shi, Sichuan Sheng, China"
+        }
+        with open('../user_data/user_token.txt', 'r') as f:
+            tokens = f.readlines()
+        for i in range(0, number):
+            token = tokens[i].replace("\n", "")
+            header = {"Authorization": token}
+            r = requests.post(url=url, headers=header, data=json.dumps(body), cert=woop)
+            print(r.json())
 
 
 if __name__ == "__main__":
@@ -377,11 +359,12 @@ if __name__ == "__main__":
     # print(accounts)
     # ba.make_normal(accounts)
     """
-
-    # belike_many("6124a7f759f2c5f8651576d8", [0, 10])  # 0-100可用
+    ba = BasicApi()
+    # ba.beliked_many("6125a9aea192feff42662db3", 10)  # 0-100可用
+    # ba.create_chat("6125a9aea192feff42662db3", 10, 4)
     # sayHi_many("611dbb20cde406bab071976e", [0, 3])
     # get_profile()
-
+    ba.block_many("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjIjoxNjMwMjk3NzEyLCJleHAiOjE2MzA5MDI1MTIsImlkIjoiNjEyODY1MzEwMThlZWU3ODg1NGU0ZTRlIiwidiI6MX0.bWYouuNXVTV67SQnPmQRFjUzeYOxWKuNfcD2lW_ISao",30)
     # with open('../user_data/user_id.txt', 'r') as f:
     #     print(f.readlines())
     #     s = f.readlines()
@@ -393,3 +376,11 @@ if __name__ == "__main__":
 
     # print(sign_autotest())
     # sign_autotest()
+
+    # ba.moment_like(100, "611f27bf20c513ef91a91b17", "611f27bf20c513ef91a91b17",
+    #                ["611e1b53935e8dded0b6b2e5", "Ashley2045", 2])
+
+    # ba.comment_moment(101, "611f27bf20c513ef91a91b17", "611f27bf20c513ef91a91b17",
+    #                 ["611e1b53935e8dded0b6b2e5", "Ashley2045", 2])
+
+    # ba.send_moment(20)

@@ -14,10 +14,10 @@
 #         print(child)
 
 
-# from hashlib import md5
-#
-# password = md5(("nancyy" + "9BE72424-F231-477D-B4E4-0DEEE7E52606").encode()).hexdigest()
-# print(password)
+from hashlib import md5
+
+password = md5(("johnny" + "9BE72424-F231-477D-B4E4-0DEEE7E52606").encode()).hexdigest()
+print(password)
 
 # a1 = ["x", "y"]
 # a2 = ["1", "2"]
@@ -25,9 +25,8 @@
 #     print(result)
 # for result2 in ('%s%s'%(a1,a2)):
 #     print(result2)
-from hashlib import md5
 
-password = md5(("johnny" + "9BE72424-F231-477D-B4E4-0DEEE7E52606").encode())
-print(password.value)
-ss = password.hexdigest()
-print(ss)
+# import os
+#
+# baseDir = os.path.join(os.getcwd(), "static")
+# print(baseDir)

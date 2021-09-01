@@ -114,9 +114,13 @@ class basic_API:
         return sta
 
     # 获取关联账号
-    def get_shared_account(self, ban_id):
-        nas_token = basic_API.get_prod_token(self)
-        url = "https://nas.apiteamn.com/api/profile/" + ban_id + "/shared_account"
+    def get_shared_account(self, ban_id, env):
+        if env == 'prod':
+            nas_token = basic_API.get_prod_token(self)
+            url = "https://nas.apiteamn.com/api/profile/" + ban_id + "/shared_account"
+        else:
+            nas_token = basic_API.get_nas_token(self)
+            url = "https://dev-nas.apiteamn.com/api/profile/" + ban_id + "/shared_account"
         nas_token = "Bearer " + nas_token
         header = {"Authorization": nas_token}
         r = requests.get(url=url, headers=header, cert=nas)
@@ -130,8 +134,13 @@ class basic_API:
         return accounts
 
     # make_normal 将被ban的账号恢复normal
-    def make_normal(self, accounts):
-        nas_token = basic_API.get_prod_token(self)
+    def make_normal(self, accounts, env):
+        if env == 'prod':
+            nas_token = basic_API.get_prod_token(self)
+            uri = "https://nas.apiteamn.com/api/user/"
+        else:
+            nas_token = basic_API.get_nas_token(self)
+            uri = "https://dev-nas.apiteamn.com/api/user/"
         nas_token = "Bearer " + nas_token
         header = {"Authorization": nas_token}
         body = {
@@ -139,7 +148,7 @@ class basic_API:
             'reason': None
         }
         for uid in accounts:
-            url = "https://nas.apiteamn.com/api/user/" + uid + "/1"
+            url = uri + uid + "/1"
             r = requests.post(url=url, data=json.dumps(body), headers=header, cert=nas)
             print(r.json())
         return None
@@ -225,6 +234,43 @@ class basic_API:
         }
         r = requests.post(url=url, headers=header, data=json.dumps(body), cert=nas)
 
+    def slide_like(self, auth_token, uid):
+        url = "https://dev.apiteamn.com/api-getway/cards/slide"
+        auth_token = "Bearer " + auth_token
+        header = {"Authorization": auth_token}
+        body = {
+            "liked": [uid]
+        }
+        r = requests.post(url=url, headers=header, data=json.dumps(body), cert=woop)
+        return r.json()
+
+    def get_latest_likeList(self, auth_token):
+        url = "https://dev.apiteamn.com/api-getway/cards/like-list"
+        auth_token = "Bearer " + auth_token
+        header = {"Authorization": auth_token}
+        r = requests.get(url=url, headers=header)
+        print(r.json()['data']['list'][0]['profile']['id'])
+        return r.json()['data']['list'][0]['profile']['id']
+
+    def get_who_likeme(self, auth_token):
+        url = "https://dev.apiteamn.com/api-getway/cards/who-liked-me"
+        auth_token = "Bearer " + auth_token
+        header = {"Authorization": auth_token}
+        r = requests.get(url=url, headers=header)
+        print(r.json()['data']['list'][0]['profile']['id'])
+        return r.json()['data']['list'][0]['profile']['id']
+
+    def block(self, auth_token, user_id):
+        url = "https://dev.apiteamn.com/api-getway/user/block/add"
+        header = {"Authorization": auth_token}
+        body = {
+            "target_id": user_id
+        }
+        requests.post(url=url, headers=header, data=json.dumps(body), cert=woop)
+        url2 = "https://dev.apiteamn.com/api-getway/user/block/list"
+        r = requests.get(url=url2, headers=header, cert=woop)
+        print(r.json()['data']['block_list'][0]['block_id'])
+        return r.json()['data']['block_list'][0]['block_id']
 
 # 获取批量用户info,将name，id，token写入文件
 def get_many_userinfo(arry):
@@ -273,7 +319,37 @@ def get_many_userinfo(arry):
 
 # 如果token过期了可以直接只保存token
 def refresh_token():
-    pass
+    url = "https://dev.apiteamn.com/api-getway/login"
+    password = md5(("johnny" + "9BE72424-F231-477D-B4E4-0DEEE7E52606").encode()).hexdigest()
+    user_names = []
+    tokens = []
+    names = []
+    ids = []
+    for i in range(0, 101):
+        user_names.append('johnny_autotets' + str(i))
+    for user_name in user_names:
+        user_name = user_name + "@gmail.com"
+        body = {
+            "platform_id": user_name,
+            "platform": 0,
+            "token": password,
+            "device": {
+                "device_id": "device_" + user_name,
+                "device_type": 3,
+                "machine": "postman",
+                "language": "en-CN;q=1, zh-Hans-CN;q=0.9, ja-CN;q=0.8",
+                "os_version": "1.0.0",
+                "device_token": "{{device_token}}",
+                "vpn_on": True,
+                "app_build": 60200
+            }
+        }
+        r = requests.post(url, json.dumps(body), cert=woop)
+        print(r.json())
+        token = r.json()['data']['token']
+        auth_token = "Bearer " + token
+        with open("../user_data/user_token.txt", 'a') as f3:
+            f3.write(auth_token + '\n')
 
 
 # 获取profile并修改后台状态
@@ -425,14 +501,15 @@ def authvideo():
 
 if __name__ == "__main__":
 
-    """
-    #恢复ban
-    # ba = basic_API()
-    # ban_id = "6002698378254500b9eb66d1"  # 6079336ad0845d2d5d603e2a johnnyR
-    # accounts = ba.get_shared_account(ban_id)
+    ba = basic_API()
+    print(ba.get_nas_token())
+
+    # #恢复ban
+    # ban_id = "6125b416a192feff42662dbe"  # 6079336ad0845d2d5d603e2a johnnyR
+    # accounts = ba.get_shared_account(ban_id, 'test')
     # print(accounts)
-    # ba.make_normal(accounts)
-    """
+    # ba.make_normal(accounts, 'test')
+
 
     # belike_many("6124a7f759f2c5f8651576d8", [0, 10])  # 0-100可用
     # sayHi_many("611dbb20cde406bab071976e", [0, 3])
@@ -449,3 +526,4 @@ if __name__ == "__main__":
 
     # print(sign_autotest())
     # sign_autotest()
+    # refresh_token()
