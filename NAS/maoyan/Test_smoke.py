@@ -45,5 +45,3 @@ class TestSmoke:
     def test_block(self):
         assert self.user2_id == ba.block(self.user1_token, self.user2_id)  # user1 block user2
 
-    def test_block_remove(self):
-        pass
