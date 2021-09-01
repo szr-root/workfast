@@ -248,20 +248,19 @@ class basic_API:
         url = "https://dev.apiteamn.com/api-getway/cards/like-list"
         auth_token = "Bearer " + auth_token
         header = {"Authorization": auth_token}
-        r = requests.get(url=url, headers=header)
-        print(r.json()['data']['list'][0]['profile']['id'])
+        r = requests.get(url=url, headers=header, cert=woop)
         return r.json()['data']['list'][0]['profile']['id']
 
     def get_who_likeme(self, auth_token):
         url = "https://dev.apiteamn.com/api-getway/cards/who-liked-me"
         auth_token = "Bearer " + auth_token
         header = {"Authorization": auth_token}
-        r = requests.get(url=url, headers=header)
-        print(r.json()['data']['list'][0]['profile']['id'])
+        r = requests.get(url=url, headers=header, cert=woop)
         return r.json()['data']['list'][0]['profile']['id']
 
     def block(self, auth_token, user_id):
         url = "https://dev.apiteamn.com/api-getway/user/block/add"
+        auth_token = "Bearer " + auth_token
         header = {"Authorization": auth_token}
         body = {
             "target_id": user_id
@@ -269,7 +268,6 @@ class basic_API:
         requests.post(url=url, headers=header, data=json.dumps(body), cert=woop)
         url2 = "https://dev.apiteamn.com/api-getway/user/block/list"
         r = requests.get(url=url2, headers=header, cert=woop)
-        print(r.json()['data']['block_list'][0]['block_id'])
         return r.json()['data']['block_list'][0]['block_id']
 
 # 获取批量用户info,将name，id，token写入文件
@@ -502,7 +500,9 @@ def authvideo():
 if __name__ == "__main__":
 
     ba = basic_API()
-    print(ba.get_nas_token())
+    # print(ba.get_nas_token())
+
+    r = ba.block("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjIjoxNjMwNDY0NjkxLCJleHAiOjE2MzEwNjk0OTEsImlkIjoiNjEyZGZlZjkxY2UxMmE5OWQxZjc0NWU0IiwidiI6MX0.MvQIsqhUo3W6nkwZaQsr_F7P9kmCjztzw3VzfKhoFRA", "612f4026248c19b3c955178a")
 
     # #恢复ban
     # ban_id = "6125b416a192feff42662dbe"  # 6079336ad0845d2d5d603e2a johnnyR

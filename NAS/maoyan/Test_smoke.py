@@ -15,6 +15,7 @@ urllib3.disable_warnings()
 
 ba = basic_API()
 
+
 class TestSmoke:
     def setup_class(self):
         num = ba.get_user_dispalyname(ba.get_nas_token())
