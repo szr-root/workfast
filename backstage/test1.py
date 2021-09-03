@@ -26,5 +26,5 @@ print(x.text)
 if x.text == user1_name:
     print("success")
 
-sleep(5)
+sleep(6)
 driver.quit()
