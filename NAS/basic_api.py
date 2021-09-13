@@ -265,10 +265,10 @@ class basic_API:
         body = {
             "target_id": user_id
         }
-        requests.post(url=url, headers=header, data=json.dumps(body), cert=woop)
+        temp = requests.post(url=url, headers=header, data=json.dumps(body), cert=woop)
         url2 = "https://dev.apiteamn.com/api-getway/user/block/list"
         r = requests.get(url=url2, headers=header, cert=woop)
-        return r.json()['data']['block_list'][0]['block_id']
+        return r.json()['data']['block_list'][0]['user']['user_id']
 
 # 获取批量用户info,将name，id，token写入文件
 def get_many_userinfo(arry):
@@ -320,9 +320,6 @@ def refresh_token():
     url = "https://dev.apiteamn.com/api-getway/login"
     password = md5(("johnny" + "9BE72424-F231-477D-B4E4-0DEEE7E52606").encode()).hexdigest()
     user_names = []
-    tokens = []
-    names = []
-    ids = []
     for i in range(0, 101):
         user_names.append('johnny_autotets' + str(i))
     for user_name in user_names:
@@ -501,8 +498,8 @@ if __name__ == "__main__":
 
     ba = basic_API()
     # print(ba.get_nas_token())
-
-    r = ba.block("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjIjoxNjMwNDY0NjkxLCJleHAiOjE2MzEwNjk0OTEsImlkIjoiNjEyZGZlZjkxY2UxMmE5OWQxZjc0NWU0IiwidiI6MX0.MvQIsqhUo3W6nkwZaQsr_F7P9kmCjztzw3VzfKhoFRA", "612f4026248c19b3c955178a")
+    refresh_token()
+    #r = ba.block("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjIjoxNjMwNDY0NjkxLCJleHAiOjE2MzEwNjk0OTEsImlkIjoiNjEyZGZlZjkxY2UxMmE5OWQxZjc0NWU0IiwidiI6MX0.MvQIsqhUo3W6nkwZaQsr_F7P9kmCjztzw3VzfKhoFRA", "612f4026248c19b3c955178a")
 
     # #恢复ban
     # ban_id = "6125b416a192feff42662dbe"  # 6079336ad0845d2d5d603e2a johnnyR
@@ -511,8 +508,8 @@ if __name__ == "__main__":
     # ba.make_normal(accounts, 'test')
 
 
-    # belike_many("6124a7f759f2c5f8651576d8", [0, 10])  # 0-100可用
-    # sayHi_many("611dbb20cde406bab071976e", [0, 3])
+    # belike_many("6131efe2c3842e0bd07e9aad", [0, 10])  # 0-100可用
+    # sayHi_many("6131efe2c3842e0bd07e9aad", [0, 3])
     # get_profile()
 
     # with open('../user_data/user_id.txt', 'r') as f:

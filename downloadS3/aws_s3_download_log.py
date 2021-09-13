@@ -4,7 +4,7 @@ import boto3
 
 env_list = ['wooplus-prod-client-log', 'wooplus-stage-client-log']
 
-now = 'prod'
+now = 'dev'
 words = ''
 
 

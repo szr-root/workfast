@@ -55,7 +55,7 @@ def get_status(status, sta):
 
 
 if __name__ == "__main__":
-    env = 0  # 0:测试站  1：生产
+    env = 1  # 0:测试站  1：生产
     data = login(env)
     print(data)
     token = get_token(data)

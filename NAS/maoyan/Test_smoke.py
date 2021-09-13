@@ -1,5 +1,7 @@
 import json
 from hashlib import md5
+from time import sleep
+
 import pytest
 import requests
 import urllib3
@@ -26,22 +28,56 @@ class TestSmoke:
         self.user2_token = user2['data']['token']
         self.user1_id = user1['data']['user']['user_id']
         self.user2_id = user2['data']['user']['user_id']
+        sleep(1)
 
     @pytest.mark.run(order=1)
     def test_like_list(self):
         ba.slide_like(self.user1_token, self.user2_id)  # user1 like user2
         assert self.user2_id == ba.get_latest_likeList(self.user1_token)  # check user1's like_list
+        sleep(1)
 
     @pytest.mark.run(order=2)
     def test_who_like_me(self):
         assert self.user1_id == ba.get_who_likeme(self.user2_token)
+        sleep(1)
 
     @pytest.mark.run(order=3)
     def test_match(self):
         match_info = ba.slide_like(self.user2_token, self.user1_id)  # user2 like user1
         assert self.user1_id == match_info['data']['matches'][0]['id']
+        sleep(1)
 
     @pytest.mark.run(order=4)
     def test_block(self):
         assert self.user2_id == ba.block(self.user1_token, self.user2_id)  # user1 block user2
+        sleep(1)
 
+    def test_post_moment(self):
+        pass
+
+    def test_like_moment(self):
+        pass
+
+    def test_comment_moment(self):
+        pass
+
+    def test_delete_comment(self):
+        pass
+
+    def test_delete_moment(self):
+        pass
+
+    def test_change_main_photo(self):
+        pass
+
+    def test_edit_profile(self):  # 加幅图。填问题等。
+        pass
+
+    def test_upload_video(self):
+        pass
+
+    def test_verify(self):
+        pass
+
+    def test_delete_user(self):
+        pass

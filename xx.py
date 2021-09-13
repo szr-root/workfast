@@ -14,10 +14,10 @@
 #         print(child)
 
 
-from hashlib import md5
-
-password = md5(("johnny" + "9BE72424-F231-477D-B4E4-0DEEE7E52606").encode()).hexdigest()
-print(password)
+# from hashlib import md5
+#
+# password = md5(("johnny" + "9BE72424-F231-477D-B4E4-0DEEE7E52606").encode()).hexdigest()
+# print(password)
 
 # a1 = ["x", "y"]
 # a2 = ["1", "2"]

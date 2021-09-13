@@ -213,6 +213,7 @@ class BasicApi:
             }
             r = requests.post(url=url, headers=header, data=json.dumps(body), cert=woop)
             print(r.json())
+            sleep(1)
 
     """
         desc: 批量block
@@ -301,7 +302,8 @@ class BasicApi:
         body = {
                 "moment_id": moment_id,
                 "media_id": media_id,  # 一级评论id
-                "content": "好耶！",
+                # "content": "😭nancy,我好艰难啊",
+                "content": "👿我，秦始皇，打钱╭(╯ε╰)╮",
                 "target_author": {
                     "id": target_author[0],
                     "name": target_author[1],
@@ -324,6 +326,7 @@ class BasicApi:
             header = {"Authorization": auth_token}
             r = requests.post(url=url, headers=header, data=json.dumps(body), cert=woop)
             print(r.json())
+
     """
         desc: 快速发送moment
         params: number：需要发送的数量
@@ -333,8 +336,13 @@ class BasicApi:
     def send_moment(self, number):
         url = "https://dev.apiteamn.com//api-getway/moment/"
         body = {
-            "kind": 101,
-            "topic_id": "5e0852a7679ece6f95e231f6",
+            "kind": 100,
+            "topic_id": "5e17e49be39d588c891e6459",
+            "photos": [{
+                "url": "2021/09/10/613b1740b8fe285af4cfa4d2",
+                "width": 1365,
+                "height": 1024
+            }],
             "location": {
                 "lat": 30.5971505,
                 "lon": 104.0608851
@@ -360,11 +368,11 @@ if __name__ == "__main__":
     # ba.make_normal(accounts)
     """
     ba = BasicApi()
-    # ba.beliked_many("6125a9aea192feff42662db3", 10)  # 0-100可用
+    # ba.beliked_many("613ebf25cb231a84374d9c2e", 50)  # 0-100可用
     # ba.create_chat("6125a9aea192feff42662db3", 10, 4)
-    # sayHi_many("611dbb20cde406bab071976e", [0, 3])
+    ba.create_chat("61397a341f2598a004f93ae2", 10, 2)
     # get_profile()
-    ba.block_many("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjIjoxNjMwMjk3NzEyLCJleHAiOjE2MzA5MDI1MTIsImlkIjoiNjEyODY1MzEwMThlZWU3ODg1NGU0ZTRlIiwidiI6MX0.bWYouuNXVTV67SQnPmQRFjUzeYOxWKuNfcD2lW_ISao",30)
+    # ba.block_many("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjIjoxNjMxMDA1MzUxLCJleHAiOjE2MzE2MTAxNTEsImlkIjoiNjExZjFiYTM5MzVlOGRkZWQwYjZiMmU3IiwidiI6MX0.En8qAOe4CNM8VEUFa5SsnNw4nf-KDcyhICubp8ghzqU", 30)
     # with open('../user_data/user_id.txt', 'r') as f:
     #     print(f.readlines())
     #     s = f.readlines()
@@ -377,10 +385,10 @@ if __name__ == "__main__":
     # print(sign_autotest())
     # sign_autotest()
 
-    # ba.moment_like(100, "611f27bf20c513ef91a91b17", "611f27bf20c513ef91a91b17",
-    #                ["611e1b53935e8dded0b6b2e5", "Ashley2045", 2])
+    # ba.moment_like(50, "611f468020c513ef91a91b20", "611f468020c513ef91a91b20",
+    #                ["611e1b53935e8dded0b6b2e5", "ashley2045", 2])
 
-    # ba.comment_moment(101, "611f27bf20c513ef91a91b17", "611f27bf20c513ef91a91b17",
-    #                 ["611e1b53935e8dded0b6b2e5", "Ashley2045", 2])
+    # ba.comment_moment(50, "611f468020c513ef91a91b20", "611f468020c513ef91a91b20",
+    #                 ["611e1b53935e8dded0b6b2e5", "ashley2045", 2])
 
     # ba.send_moment(20)
