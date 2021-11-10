@@ -21,13 +21,23 @@ ba = basic_API()
 class TestSmoke:
     def setup_class(self):
         num = ba.get_user_dispalyname(ba.get_nas_token())
-        user1 = ba.sign_up(num, ba.image("01.jpeg"))
+        user1 = ba.sign_up(int(num), ba.image("male.jpg"))
+        sleep(1)
         num = int(num) + 1
-        user2 = ba.sign_up(num, ba.image("02.jpeg"))
+        user2 = ba.sign_up(num, ba.image("female.jpg"))
         self.user1_token = user1['data']['token']
         self.user2_token = user2['data']['token']
         self.user1_id = user1['data']['user']['user_id']
         self.user2_id = user2['data']['user']['user_id']
+        self.user1_gender = user1['data']['user']['gender']
+        self.user2_gender = user2['data']['user']['gender']
+        self.user1_name = user1['data']['user']['display_name']
+        self.user2_name = user2['data']['user']['display_name']
+        self.user1_info = [self.user1_id, self.user1_name, self.user1_gender]
+        self.user2_info = [self.user2_id, self.user2_name, self.user2_gender]
+        self.comment_id = ''
+        self.moment_id = ''
+
         sleep(1)
 
     @pytest.mark.run(order=1)
@@ -52,32 +62,57 @@ class TestSmoke:
         assert self.user2_id == ba.block(self.user1_token, self.user2_id)  # user1 block user2
         sleep(1)
 
+    @pytest.mark.run(order=5)
+    def test_block_delete(self):
+        assert 'success' == ba.block_delete(self.user1_token, self.user2_id)
+        sleep(1)
+
+    @pytest.mark.run(order=6)
     def test_post_moment(self):
-        pass
+        post_moment_result = ba.send_moment(self.user1_token)  # return [moment_id, message]
+        self.moment_id = post_moment_result[0]
+        assert 'success' == post_moment_result[1]
+        sleep(1)
 
+    @pytest.mark.run(order=7)
     def test_like_moment(self):
-        pass
+        assert 'success' == ba.like_moment(self.user2_token, self.moment_id, self.user1_info)
+        sleep(1)
 
+    @pytest.mark.run(order=8)
     def test_comment_moment(self):
-        pass
+        # return [comment_id, message]
+        comment_moment_result = ba.comment_moment(self.user2_token, self.moment_id, self.user1_info)
+        self.comment_id = comment_moment_result[0]
+        assert 'success' == comment_moment_result[1]
+        sleep(1)
 
+    @pytest.mark.run(order=9)
     def test_delete_comment(self):
-        pass
+        assert 'success' == ba.delete_comment(self.user1_token, self.comment_id, self.moment_id)
+        sleep(1)
 
+    @pytest.mark.run(order=10)
     def test_delete_moment(self):
-        pass
+        assert 'success' == ba.delete_moment(self.user1_token, self.moment_id)
+        sleep(1)
 
+    @pytest.mark.run(order=11)
     def test_change_main_photo(self):
         pass
 
+    @pytest.mark.run(order=12)
     def test_edit_profile(self):  # 加幅图。填问题等。
         pass
 
+    @pytest.mark.run(order=13)
     def test_upload_video(self):
-        pass
+        ba.upload_video(self.user1_token)
 
+    @pytest.mark.run(order=14)
     def test_verify(self):
         pass
 
+    @pytest.mark.run(order=15)
     def test_delete_user(self):
         pass

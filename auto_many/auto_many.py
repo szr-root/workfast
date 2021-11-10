@@ -19,19 +19,15 @@ urllib3.disable_warnings()
 class BasicApi:
     """
         desc: nas后台登录
-        params: env,使用环境，env=='prod' 表示生产站；其他表示测试站
-        use: get_nas_token('prod')
-        return： nas登录获取的token
+        params:
+            use: get_nas_token('prod')
+            return： nas登录获取的token
     """
-    def get_nas_token(self, env):
-        if env == 'prod':
-            url = "https://nas.apiteamn.com/api/login"
-            body = {"username": "john",
-                    "password": "c2gU.yYZLh"}
-        else:
-            url = "https://dev-nas.apiteamn.com/api/login"
-            body = {"username": "admin",
-                    "password": "WP-nas2018"}
+
+    def get_nas_token(self):
+        url = "https://dev-nas.apiteamn.com/api/login"
+        body = {"username": "admin",
+                "password": "WP-nas2018"}
         r = requests.post(url=url, data=json.dumps(body), cert=nas)
         return r.json()['data']['token']
 
@@ -42,11 +38,9 @@ class BasicApi:
         use: url = image('01.jpeg')
         return： 获取的image的url值
     """
-    def image(self, env, file):
-        if env == 'prod':
-            url = "https://apiteamn.com/api-getway/image"
-        else:
-            url = "https://dev.apiteamn.com/api-getway/image"
+
+    def image(self, file):
+        url = "https://dev.apiteamn.com/api-getway/image"
         with open("/Users/pof/PycharmProjects/workfast/NAS/image/" + file, 'rb')as f:
             pic = {"image": ("01.jpeg", f.read(), "image/jpeg")}
         body = {}
@@ -55,19 +49,17 @@ class BasicApi:
 
     """
         desc: 注册接口
-        params: env：环境
+        params: 
                 username:用户名称，同样也是用户邮箱@的前半部分
                 password:密码
                 gender：性别 1:男；2：女
         use: user = sign_up('prod',johnny570,johnny,1,'01.jpeg')
         return： 获取注册后user信息
     """
-    def sign_up(self, env, username, password, gender, pic):
-        if env == 'prod':
-            url = "https://dev.apiteamn.com/api-getway/signup"
-        else:
-            url = "https://apiteamn.com/api-getway/signup"
-        image_url = BasicApi().image(env, pic)
+
+    def sign_up(self, username, password, gender, pic):
+        url = "https://apiteamn.com/api-getway/signup"
+        image_url = BasicApi().image(pic)
         password = md5((password + "9BE72424-F231-477D-B4E4-0DEEE7E52606").encode()).hexdigest()
         body = {
             "platform_id": str(username) + "@gmail.com",
@@ -104,15 +96,12 @@ class BasicApi:
     """
         desc: 获取图片实际的url值
         params: img_url：通过image()接口上传的图片url
-                env：环境；env=='prod' 表示生产站，其他表示测试站
         use: get_pic_url(img_url,'prod')
         return： base64编码过后实际的url
     """
-    def get_pic_url(self, img_uri, env):
-        if env == 'prod':
-            bucket = "wooplus-stage-img"
-        else:
-            bucket = "wooplus-prod-img"
+
+    def get_pic_url(self, img_uri):
+        bucket = "wooplus-prod-img"
         encrypt_src_data = json.dumps({"bucket": bucket, "key": img_uri})
         encrypt_data = str(encrypt_src_data).encode('utf-8')
         img_uri_encrypted = base64.b64encode(encrypt_data)
@@ -173,6 +162,7 @@ class BasicApi:
         use: login(johnny670@gmail.com,johnny)
         return： base64编码过后实际的url
     """
+
     def login(self, uname, password):
         url = "https://dev-nas.apiteamn.com/api-getway/login"
         body = {
@@ -180,7 +170,7 @@ class BasicApi:
             "platform": 0,
             "token": password,
             "device": {
-                "device_id": "device_"+str(uname),
+                "device_id": "device_" + str(uname),
                 "device_type": 3,
                 "machine": "iphone7",
                 "language": "en-CN;q=1, zh-Hans-CN;q=0.9, ja-CN;q=0.8",
@@ -200,6 +190,7 @@ class BasicApi:
         use: create_chat('6124704ae5d21dbf9a5e49cf'，50)
         return： null
     """
+
     def create_chat(self, uid, number, chat_type):
         with open('../user_data/user_token.txt', 'r') as f:
             tokens = f.readlines()
@@ -221,6 +212,7 @@ class BasicApi:
         use: block_many(eyJhbGciOiJIUzI1NiIsInR5cCI6... ，50)
         return： null
     """
+
     def block_many(self, token, number):
         url = "https://dev.apiteamn.com/api-getway/user/block/add"
         auth_token = "Bearer " + token
@@ -242,7 +234,9 @@ class BasicApi:
         use:beliked_many(6124704fe5d21dbf9a5e49d3，50)
         return： null
     """
+
     def beliked_many(self, userid, number):
+        BasicApi.refresh_token(self, number)
         with open('../user_data/user_token.txt', 'r') as f:
             tokens = f.readlines()
         with open('../user_data/user_name.txt', 'r') as f2:
@@ -257,6 +251,7 @@ class BasicApi:
                               cert=woop)
             print(r.json())
             print(f"ok!{name} liked you!")
+            # sleep(1)
 
     """
         desc: 批量点赞moment
@@ -267,18 +262,19 @@ class BasicApi:
                     ["611e1b53935e8dded0b6b2e5", "Ashley2045", 2])
         return： null
     """
+
     def moment_like(self, number, moment_id, media_id, target_author):
         with open('../user_data/user_token.txt', 'r') as f:
             tokens = f.readlines()
         url = "https://dev.apiteamn.com/api-getway/moment/like"
         body = {
-                "moment_id": moment_id,
-                "media_id": media_id,
-                "target_author": {
-                    "id": target_author[0],
-                    "name": target_author[1],
-                    "gender": target_author[2]
-                }
+            "moment_id": moment_id,
+            "media_id": media_id,
+            "target_author": {
+                "id": target_author[0],
+                "name": target_author[1],
+                "gender": target_author[2]
+            }
         }
         for i in range(0, number):
             auth_token = tokens[i].replace("\n", "")
@@ -295,31 +291,32 @@ class BasicApi:
                         ["611e1b53935e8dded0b6b2e5", "Ashley2045", 2])
             return： null
         """
+
     def comment_moment(self, number, moment_id, media_id, target_author):
         with open('../user_data/user_token.txt', 'r') as f:
             tokens = f.readlines()
         url = "https://dev.apiteamn.com/api-getway/moment/comment"
         body = {
-                "moment_id": moment_id,
-                "media_id": media_id,  # 一级评论id
-                # "content": "😭nancy,我好艰难啊",
-                "content": "👿我，秦始皇，打钱╭(╯ε╰)╮",
-                "target_author": {
-                    "id": target_author[0],
-                    "name": target_author[1],
-                    "gender": target_author[2],
-                    "avatar": None,
-                    "deep_link": None
-                }
-                # "reference": {  # 要at的评论的作者
-                #     "author": {
-                #         "id": target_author[0],
-                #         "name": target_author[1],
-                #         "gender": target_author[2]
-                #     },
-                #     "id": target_author[0],  # 要at的评论id
-                #     "content": "好耶"  # 要at的评论内容
-                # }
+            "moment_id": moment_id,
+            "media_id": media_id,  # 一级评论id
+            # "content": "😭nancy,我好艰难啊",
+            "content": "👿我，秦始皇，打钱╭(╯ε╰)╮",
+            "target_author": {
+                "id": target_author[0],
+                "name": target_author[1],
+                "gender": target_author[2],
+                "avatar": None,
+                "deep_link": None
+            }
+            # "reference": {  # 要at的评论的作者
+            #     "author": {
+            #         "id": target_author[0],
+            #         "name": target_author[1],
+            #         "gender": target_author[2]
+            #     },
+            #     "id": target_author[0],  # 要at的评论id
+            #     "content": "好耶"  # 要at的评论内容
+            # }
         }
         for i in range(0, number):
             auth_token = tokens[i].replace("\n", "")
@@ -328,13 +325,14 @@ class BasicApi:
             print(r.json())
 
     """
-        desc: 快速发送moment
+        desc: 发送moment
         params: number：需要发送的数量
         use:  send_moment(10)
         return： null
     """
+
     def send_moment(self, number):
-        url = "https://dev.apiteamn.com//api-getway/moment/"
+        url = "https://dev.apiteamn.com/api-getway/moment/"
         body = {
             "kind": 100,
             "topic_id": "5e17e49be39d588c891e6459",
@@ -357,6 +355,72 @@ class BasicApi:
             r = requests.post(url=url, headers=header, data=json.dumps(body), cert=woop)
             print(r.json())
 
+    # 更新token
+    def refresh_token(self, num):
+        url = "https://dev.apiteamn.com/api-getway/login"
+        password = md5(("johnny" + "9BE72424-F231-477D-B4E4-0DEEE7E52606").encode()).hexdigest()
+        user_names = []
+        with open("../user_data/user_token.txt", 'w') as clear_f:
+            clear_f.write("")
+        for i in range(0, num):
+            user_names.append('johnny_autotets' + str(i))
+        for user_name in user_names:
+            user_name = user_name + "@gmail.com"
+            body = {
+                "platform_id": user_name,
+                "platform": 0,
+                "token": password,
+                "device": {
+                    "device_id": "device_" + user_name,
+                    "device_type": 3,
+                    "machine": "postman",
+                    "language": "en-CN;q=1, zh-Hans-CN;q=0.9, ja-CN;q=0.8",
+                    "os_version": "1.0.0",
+                    "device_token": "{{device_token}}",
+                    "vpn_on": True,
+                    "app_build": 60300
+                }
+            }
+            r = requests.post(url, json.dumps(body), cert=woop)
+            print(r.json())
+            token = r.json()['data']['token']
+            auth_token = "Bearer " + token
+            with open("../user_data/user_token.txt", 'a') as f3:
+                f3.write(auth_token + '\n')
+
+    def change_gps(self, num):
+        url = "https://dev.apiteamn.com/api-getway/user/gps"
+        with open("../user_data/user_token.txt", 'r') as f:
+            tokens = f.readlines()
+        body = {
+            "lat": 30.596737958800567,
+            "lon": 104.0607623324486,
+            "city": "Chengdu Shi",
+            "country": "China",
+            "country_iso": "CN",
+            "state": "Sichuan Sheng"
+        }
+        for i in range(0, num):
+            token = tokens[i].replace("\n", "")
+            header = {"Authorization": token}
+            r = requests.post(url=url, headers=header, data=json.dumps(body), cert=woop)
+            print(r.json())
+
+    def change_filter(self, num):
+        url = "https://dev.apiteamn.com/api-getway/user/filter"
+        with open("../user_data/user_token.txt", 'r') as f:
+            tokens = f.readlines()
+        body = {
+            "match_gender": 3,
+            "min_age": 18,
+            "max_age": 99
+        }
+        for i in range(0, num):
+            token = tokens[i].replace("\n", "")
+            header = {"Authorization": token}
+            r = requests.post(url=url, headers=header, data=json.dumps(body), cert=woop)
+            print(r.json())
+
 
 if __name__ == "__main__":
     """
@@ -368,11 +432,14 @@ if __name__ == "__main__":
     # ba.make_normal(accounts)
     """
     ba = BasicApi()
-    # ba.beliked_many("613ebf25cb231a84374d9c2e", 50)  # 0-100可用
+    ba.refresh_token(20)
+    ba.change_gps(20)
+    ba.change_filter(20)
+    # ba.beliked_many("6144343063dfafcbb3e0d688", 2)  # 0-100可用
+
     # ba.create_chat("6125a9aea192feff42662db3", 10, 4)
-    ba.create_chat("61397a341f2598a004f93ae2", 10, 2)
     # get_profile()
-    # ba.block_many("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjIjoxNjMxMDA1MzUxLCJleHAiOjE2MzE2MTAxNTEsImlkIjoiNjExZjFiYTM5MzVlOGRkZWQwYjZiMmU3IiwidiI6MX0.En8qAOe4CNM8VEUFa5SsnNw4nf-KDcyhICubp8ghzqU", 30)
+    # ba.block_many("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjIjoxNjM0NTQxMTMzLCJleHAiOjE2MzQ1NDE0MzMsImlkIjoiNjEzZjFkZGNkNTVkMjEwNWVjNDQ1YmU5IiwidiI6MX0.Y4J-fPfjNwIW3bUX7xU_Xb0mjM7cUz1112wWwBFW9Oc", 4)
     # with open('../user_data/user_id.txt', 'r') as f:
     #     print(f.readlines())
     #     s = f.readlines()

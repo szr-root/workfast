@@ -56,7 +56,7 @@ class basic_API:
     def image(self, file):
         url = "https://dev.apiteamn.com/api-getway/image"
         with open("/Users/pof/PycharmProjects/workfast/NAS/image/" + file, 'rb')as f:
-            pic = {"image": ("01.jpeg", f.read(), "image/jpeg")}
+            pic = {"image": (file, f.read(), "image/jpg")}
         body = {}
         r = requests.post(url=url, data=body, files=pic, cert=woop)
         return r.json()['data']['url']
@@ -64,6 +64,7 @@ class basic_API:
     # 注册接口，需要传递johnny * 名字和 图片的url
     # 图片url通过 image接口获取
     def sign_up(self, number, image_url):
+        number = int(number) + 1
         url = "https://dev.apiteamn.com/api-getway/signup"
         user_name = "johnny" + str(number)  # username 是 johnny+number：johnny515
         password = md5(("johnny" + "9BE72424-F231-477D-B4E4-0DEEE7E52606").encode()).hexdigest()
@@ -113,6 +114,19 @@ class basic_API:
         sta = list[status - 1]
         return sta
 
+    def get_ban_accounts(self, nas_token):
+        url = "https://dev-nas.apiteamn.com/api/profile/search"
+        nas_token = "Bearer " + nas_token
+        header = {"Authorization": nas_token}
+        body = {"condition":{"tags":[],"gender":3,"min_age":None,"max_age":None,"status":"5"},"page":1}
+        r = requests.post(url=url, headers=header,data=json.dumps(body), cert=nas)
+
+        accounts = r.json()['data']['profiles']
+        ban_accouts = []
+        for i in range(0, len(accounts)):
+            ban_accouts.append(accounts[i]['id'])
+        return ban_accouts
+
     # 获取关联账号
     def get_shared_account(self, ban_id, env):
         if env == 'prod':
@@ -134,13 +148,14 @@ class basic_API:
         return accounts
 
     # make_normal 将被ban的账号恢复normal
-    def make_normal(self, accounts, env):
-        if env == 'prod':
-            nas_token = basic_API.get_prod_token(self)
-            uri = "https://nas.apiteamn.com/api/user/"
-        else:
-            nas_token = basic_API.get_nas_token(self)
-            uri = "https://dev-nas.apiteamn.com/api/user/"
+    def make_normal(self, accounts, nas_token):
+        # if env == 'prod':
+        #     nas_token = basic_API.get_prod_token(self)
+        #     uri = "https://nas.apiteamn.com/api/user/"
+        # else:
+        #     nas_token = basic_API.get_nas_token(self)
+        #     uri = "https://dev-nas.apiteamn.com/api/user/"
+        uri = "https://dev-nas.apiteamn.com/api/user/"
         nas_token = "Bearer " + nas_token
         header = {"Authorization": nas_token}
         body = {
@@ -149,8 +164,12 @@ class basic_API:
         }
         for uid in accounts:
             url = uri + uid + "/1"
-            r = requests.post(url=url, data=json.dumps(body), headers=header, cert=nas)
-            print(r.json())
+            data = json.dumps(body)
+            try:
+                r = requests.post(url=url, data=data, headers=header, cert=nas)
+                print(r.json())
+            except:
+                print(uid, data)
         return None
 
     # 创建视频id
@@ -161,11 +180,11 @@ class basic_API:
             'App-Version': 60200,
             "Authorization": token
         }
-        r = requests.post(url, headers=headers)
+        r = requests.post(url, headers=headers, cert=woop)
         return r.json()['data']['video_id']
 
     # upload视频
-    def upload_video(self, video, video_id, token):
+    def upload_auth_video(self, video, video_id, token):
         url = "https://dev-nas.apiteamn.com/api-getway/user/upload-auth-video"
         token = "Bearer " + token
         headers = {
@@ -177,11 +196,13 @@ class basic_API:
             "part_number": 1,
             "video_file": video
         }
-        r = requests.post(url=url, data=json.dumps(body), files=video, headers=headers)
+        r = requests.post(url=url, data=json.dumps(body), files=video, headers=headers, cert=woop)
         return r.json()
 
     # 验证上传完成
     def complete_video(self, video_id, token):
+        token = "Bearer " + token
+        url = "https://dev-nas.apiteamn.com/api-getway/user/complete-auth-video"
         body = {
             "video_id": video_id,
             "part_info": [
@@ -198,6 +219,8 @@ class basic_API:
             'App-Version': 60200,
             "Authorization": token
         }
+        r = requests.post(url=url, data=json.dumps(body), headers=headers, cert=woop)
+        return r.json()
 
     # 更改仅更换主图的用户状态
     def change_photostatus(self, user_id, auth, raw_url, action, recognition):
@@ -270,6 +293,95 @@ class basic_API:
         r = requests.get(url=url2, headers=header, cert=woop)
         return r.json()['data']['block_list'][0]['user']['user_id']
 
+    def block_delete(self, auth_token, user_id):
+        url = "https://dev.apiteamn.com/api-getway/user/block/delete"
+        auth_token = "Bearer " + auth_token
+        header = {"Authorization": auth_token}
+        body = {
+            "target_id": user_id
+        }
+        r = requests.post(url=url, headers=header, data=json.dumps(body), cert=woop)
+        return r.json()['message']
+
+    def send_moment(self, auth_token):
+        url = "https://dev.apiteamn.com/api-getway/moment"
+        body = {
+            "kind": 101,
+            "location": {
+                "lat": 30.5971505,
+                "lon": 104.0608851
+            },
+            "address": "Chengdu Shi, Sichuan Sheng, China"
+        }
+        auth_token = "Bearer " + auth_token
+        header = {"Authorization": auth_token}
+        r = requests.post(url=url, headers=header, data=json.dumps(body), cert=woop)
+        return [r.json()['data']['id'], r.json()['message']]
+
+    def like_moment(self, auth_token, moment_id, target_author):
+        url = "https://dev.apiteamn.com/api-getway/moment/like"
+        body = {
+                "moment_id": moment_id,
+                "media_id": moment_id,
+                "target_author": {
+                    "id": target_author[0],
+                    "name": target_author[1],
+                    "gender": target_author[2]
+                }
+        }
+        auth_token = "Bearer " + auth_token
+        header = {"Authorization": auth_token}
+        r = requests.post(url=url, headers=header, data=json.dumps(body), cert=woop)
+        print(r.json())
+        return r.json()['message']
+
+    def comment_moment(self, auth_token, moment_id, target_author):
+        url = "https://dev.apiteamn.com/api-getway/moment/comment"
+        body = {
+                "moment_id": moment_id,
+                "media_id": moment_id,  # 一级评论id
+                "content": "👿我，秦始皇，打钱╭(╯ε╰)╮",
+                "target_author": {
+                    "id": target_author[0],
+                    "name": target_author[1],
+                    "gender": target_author[2],
+                    "avatar": None,
+                    "deep_link": None
+                }
+        }
+        auth_token = "Bearer " + auth_token
+        header = {"Authorization": auth_token}
+        r = requests.post(url=url, headers=header, data=json.dumps(body), cert=woop)
+        print(r.json())
+        return [r.json()['data']['id'], r.json()['message']]
+
+    def delete_moment(self, auth_token, moment_id):
+        url = "https://dev.apiteamn.com/api-getway/moment/" + moment_id
+        auth_token = "Bearer " + auth_token
+        header = {"Authorization": auth_token}
+        r = requests.delete(url=url, headers=header, cert=woop)
+        return r.json()['message']
+
+    def delete_comment(self, auth_token, comment_id, moment_id):
+        url = "https://dev.apiteamn.com/api-getway/moment/comment" + comment_id
+        auth_token = "Bearer " + auth_token
+        header = {"Authorization": auth_token}
+        body = {
+                "target_id": comment_id,
+                "moment_id": moment_id}
+        r = requests.delete(url=url, headers=header, data=json.dumps(body), cert=woop)
+        return r.json()['message']
+
+    def upload_video(self, auth_token):
+        with open("/Users/pof/PycharmProjects/workfast/NAS/image/video.mp4", 'rb')as f:
+            video = {"video": (f.read(), "mp4")}
+        video_file = video
+        auth_token = "Bearer " + auth_token
+        video_id = basic_API.create_video_id(self, auth_token)
+        basic_API.upload_auth_video(self, video_file, video_id, auth_token)
+        basic_API.complete_video(self, video_id, auth_token)
+
+
 # 获取批量用户info,将name，id，token写入文件
 def get_many_userinfo(arry):
     url = "https://dev.apiteamn.com/api-getway/login"
@@ -316,11 +428,13 @@ def get_many_userinfo(arry):
 
 
 # 如果token过期了可以直接只保存token
-def refresh_token():
+def refresh_token(num):
     url = "https://dev.apiteamn.com/api-getway/login"
     password = md5(("johnny" + "9BE72424-F231-477D-B4E4-0DEEE7E52606").encode()).hexdigest()
     user_names = []
-    for i in range(0, 101):
+    with open("../user_data/user_token.txt", 'w') as clear_f:
+        clear_f.write("")
+    for i in range(0, num):
         user_names.append('johnny_autotets' + str(i))
     for user_name in user_names:
         user_name = user_name + "@gmail.com"
@@ -336,7 +450,7 @@ def refresh_token():
                 "os_version": "1.0.0",
                 "device_token": "{{device_token}}",
                 "vpn_on": True,
-                "app_build": 60200
+                "app_build": 60300
             }
         }
         r = requests.post(url, json.dumps(body), cert=woop)
@@ -493,19 +607,36 @@ def authvideo():
     ba = basic_API()
     nas_token = ba.get_nas_token()  # nas 登录
 
+# md5加密
+def get_password():
+    password = md5(("nancyy" + "9BE72424-F231-477D-B4E4-0DEEE7E52606").encode()).hexdigest()
+    print(password)
+
+
 
 if __name__ == "__main__":
-
     ba = basic_API()
-    # print(ba.get_nas_token())
-    refresh_token()
-    #r = ba.block("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjIjoxNjMwNDY0NjkxLCJleHAiOjE2MzEwNjk0OTEsImlkIjoiNjEyZGZlZjkxY2UxMmE5OWQxZjc0NWU0IiwidiI6MX0.MvQIsqhUo3W6nkwZaQsr_F7P9kmCjztzw3VzfKhoFRA", "612f4026248c19b3c955178a")
+    nas_token = ba.get_nas_token()
+    # username = ba.get_user_dispalyname(nas_token)
+    # print(username)
 
+    # with open('../user_data/user_token.txt', 'w') as f:
+    #     f.write("")
+
+    # refresh_token(20)
+
+    # r = ba.block("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjIjoxNjMwNDY0NjkxLCJleHAiOjE2MzEwNjk0OTEsImlkIjoiNjEyZGZlZjkxY2UxMmE5OWQxZjc0NWU0IiwidiI6MX0.MvQIsqhUo3W6nkwZaQsr_F7P9kmCjztzw3VzfKhoFRA", "612f4026248c19b3c955178a")
+    # x = ba.send_moment("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjIjoxNjMxNjA5NTU0LCJleHAiOjE2MzIyMTQzNTQsImlkIjoiNjE0MDVkNzQ2M2RmYWZjYmIzZTBkNjdmIiwidiI6MX0.NBy0M71t5tUg1f7aPrwc140VVPWkY4wKCyBlhapfFmw")
+    # print(x)
     # #恢复ban
-    # ban_id = "6125b416a192feff42662dbe"  # 6079336ad0845d2d5d603e2a johnnyR
+    # ban_id = "6170e6c01ff0ceb7dafaa7b6"  # 6079336ad0845d2d5d603e2a johnnyR
     # accounts = ba.get_shared_account(ban_id, 'test')
     # print(accounts)
     # ba.make_normal(accounts, 'test')
+    for i in range(0, 50):
+        ban_ids = ba.get_ban_accounts(nas_token)
+        ba.make_normal(ban_ids, nas_token)
+
 
 
     # belike_many("6131efe2c3842e0bd07e9aad", [0, 10])  # 0-100可用

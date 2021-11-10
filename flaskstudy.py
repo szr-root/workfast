@@ -1,71 +1,70 @@
-import json
-
-import requests
-import urllib3
-
-nas_cert = "/Users/pof/PycharmProjects/workfast/check_status/nas-client-cert.pem"
-nas_key = "/Users/pof/PycharmProjects/workfast/check_status/nas-client-key.pem"
-woop_cert = "/Users/pof/PycharmProjects/workfast/check_status/client.cert.pem"
-woop_key = "/Users/pof/PycharmProjects/workfast/check_status/client.key.nopwd.pem"
-nas = (nas_cert, nas_key)
-woop = (woop_cert, woop_key)
-urllib3.disable_warnings()
-
-accounts = []
-accounts_all = []
-
-class basic_API:
-    def get_prod_token(self):
-        url = "https://nas.apiteamn.com/api/login"
-        body = {"username": "john",
-                "password": "c2gU.yYZLh"}
-        r = requests.post(url=url, data=json.dumps(body), cert=nas)
-        return r.json()['data']['token']
-
-
-    def get_shared_account(self, ban_id):
-        nas_token = basic_API.get_prod_token(self)
-        url = "https://nas.apiteamn.com/api/profile/" + ban_id + "/shared_account"
-        nas_token = "Bearer " + nas_token
-        header = {"Authorization": nas_token}
-        r = requests.get(url=url, headers=header, cert=nas)
-        account = r.json()['data']['accounts']
-        print("关联账号有 " + str(len(account)) + " 个")
-        for i in range(0, len(account)):
-            if r.json()['data']['accounts'][i]['status'] != 6:
-                if r.json()['data']['accounts'][i]['status'] not in accounts_all:
-                    accounts_all.append(r.json()['data']['accounts'][i]['status'])
-                for j in range(0, len(accounts_all)):
-                    url = "https://nas.apiteamn.com/api/profile/" + ban_id + "/shared_account"
-                    r2 = requests.get(url=url, headers=header, cert=nas)
-                    account2 = r2.json()['data']['accounts']
-                    for i in range(0, len(account2)):
-                        if r2.json()['data']['accounts'][i]['status'] == 5:
-                            if r2.json()['data']['accounts'][i]['status'] not in accounts_all:
-                                accounts.append(r2.json()['data']['accounts'][i]['status'])
-
-        # make_normal 将被ban的账号恢复normal
-
-
-    def make_normal(self, accounts):
-        nas_token = basic_API.get_prod_token(self)
-        nas_token = "Bearer " + nas_token
-        header = {"Authorization": nas_token}
-        body = {
-            'current_status': 5,
-            'reason': None
-        }
-        for uid in accounts:
-            url = "https://nas.apiteamn.com/api/user/" + uid + "/1"
-            r = requests.post(url=url, data=json.dumps(body), headers=header, cert=nas)
-            print(r.json())
-        return None
-
-if __name__ == "__main__":
-
-    #恢复ban
-    ba = basic_API()
-    ban_id = "6002698378254500b9eb66d1"  # 6079336ad0845d2d5d603e2a johnnyR
-    ba.get_shared_account(ban_id)
-    print(accounts)
-    ba.make_normal(accounts)
+# import json
+# import requests
+#
+#
+# def get_token(env='test'):
+#     if env == 'test':
+#         url = 'https://dev-nas.apiteamn.com/api/login'
+#         pay_load = {
+#             'username': "admin",
+#             'password': "WP-nas2018"
+#         }
+#     else:
+#         url = 'https://nas.apiteamn.com/api/login'
+#         pay_load = {
+#             'username': "nancy",
+#             'password': "H_HNZ8r6gw"
+#         }
+#     headers = {
+#         'Accept': 'application / json'
+#     }
+#     resp = requests.request('post', url=url, headers=headers, data=json.dumps(pay_load), cert=(
+#                 '/Users/woop/client/nas-client-cert.pem',
+#                 '/Users/woop/client/nas-client-key.pem'))
+#     respj = resp.json()
+#     return 'Bearer ' + respj['data']['token']
+#
+#
+# def get_share_account(token, uid, env='test'):
+#     if env == 'test':
+#         url = 'https://dev-nas.apiteamn.com/api/profile/' + uid + '/shared_account'
+#     else:
+#         url = 'https://nas.apiteamn.com/api/profile/' + uid + '/shared_account'
+#     headers = {
+#         'Accept': 'application / json',
+#         'Authorization': token
+#     }
+#     resp = requests.request('get', url=url, headers=headers, cert=(
+#         '/Users/woop/client/nas-client-cert.pem',
+#         '/Users/woop/client/nas-client-key.pem'))
+#     respj = resp.json()
+#     _ids = list()
+#     for _ in respj['data']['accounts']:
+#         if _['status'] == 5:
+#             _ids.append(_['id'])
+#     return _ids
+#
+#
+# def make_normal(token, _id, env='test'):
+#     if env == 'test':
+#         url = 'https://dev-nas.apiteamn.com/api/user/' + _id + '/1'
+#     else:
+#         url = 'https://nas.apiteamn.com/api/user/' + _id + '/1'
+#     headers = {
+#         'Accept': 'application / json',
+#         'Authorization': token
+#     }
+#     pay_load = {
+#         'current_status': 5,
+#         'reason': 'null'}
+#     resp = requests.request('post', url=url, headers=headers, data=json.dumps(pay_load), cert=(
+#                 '/Users/woop/client/nas-client-cert.pem',
+#                 '/Users/woop/client/nas-client-key.pem'))
+#     respj = resp.json()
+#     return respj
+#
+#
+# auth = get_token('test')     # test/prod
+# ids = get_share_account(auth, '611e1b53935e8dded0b6b2e5') + ['611e1b53935e8dded0b6b2e5']
+# for _id in ids:
+#     print(make_normal(auth, _id))
