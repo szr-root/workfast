@@ -432,10 +432,10 @@ if __name__ == "__main__":
     # ba.make_normal(accounts)
     """
     ba = BasicApi()
-    ba.refresh_token(20)
-    ba.change_gps(20)
-    ba.change_filter(20)
-    # ba.beliked_many("6144343063dfafcbb3e0d688", 2)  # 0-100可用
+    # ba.refresh_token(20)
+    # ba.change_gps(20)
+    # ba.change_filter(20)
+    ba.beliked_many("6184f4ba2831f986094cb090", 2)  # 0-100可用
 
     # ba.create_chat("6125a9aea192feff42662db3", 10, 4)
     # get_profile()

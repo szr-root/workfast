@@ -1,5 +1,6 @@
 import json
 from hashlib import md5
+from time import sleep
 
 import requests
 from sshtunnel import SSHTunnelForwarder
@@ -100,6 +101,29 @@ def set_redis_updata_time(uid):
     print('已完成...等待客户端自动拉取ly-info信息刷新\n')
 
 
+def has_lucky_draw(user_token):
+    url = 'https://dev.apiteamn.com/api-getway/cards/likes-you/info'
+    params = {'check_upgrade': 0, 'gmt_offset': 28800}
+    user_token = "Bearer " + user_token
+    header = {"Authorization": user_token}
+    r = requests.get(url=url, params=params, headers=header, cert=woop)
+    # print(r.json())
+    return r.json()
+
+
+def lucky_draw(user_token):
+    url = 'https://dev.apiteamn.com/api-getway/cards/likes-you/lucky'
+    body = {
+        "last_user_id": "61246f78e5d21dbf9a5e49cc",
+        "gmt_offset": 28800
+    }
+    user_token = "Bearer " + user_token
+    header = {"Authorization": user_token}
+    r = requests.post(url=url, data=json.dumps(body), headers=header, cert=woop)
+    # print(r.json())
+    return r.json()
+
+
 # 检查liked-info详细信息
 def step0_get_liked_info(nas_token, uid):
     liked_list = (r.zrangebyscore('{%s}:c:c:s:liked' % uid, min=float('-inf'), max=float('inf'), withscores=True))
@@ -107,14 +131,14 @@ def step0_get_liked_info(nas_token, uid):
     for i in range(0, len(liked_list)):
         user = liked_list[i]
         name = get_user_dispalyname(nas_token, user[0])
+        time = str(user[1])
         if user[1] < 0:
-            time = str(user[1])
             if time[:4] == '-9.2':
-                print("{} ({}) 被block或者被ban，delete或者你删除了他,不会出现在likes you列表里'".format(name, user[0]))
+                print("{} ({})于{} 被block或者被ban，delete或者你删除了他,不会出现在likes you列表里'".format(name, user[0], time))
             else:
-                print('与 {} ({}) 形成match'.format(name, user[0]))
+                print('与 {} ({})于{} 形成match'.format(name, user[0], time))
         else:
-            print('{} ({}) 单向like了你'.format(name, user[0]))
+            print('{} ({})于{} 单向like了你'.format(name, user[0], time))
     print('已完成...\n')
 
 
@@ -149,19 +173,41 @@ server.start()
 r = redis.Redis(host='localhost', port=server.local_bind_port, decode_responses=True)
 print(r, '  redis 连接成功...\n')
 
-
 if __name__ == '__main__':
-    user_info = login('johnny734@gmail.com', 'johnny')
+    user_info = login('johnny770@gmail.com', 'johnny')
     uid = user_info['data']['user']['user_id']
     user_token = user_info['data']['token']
     nas_token = get_nas_token()
 
-    # step0_get_liked_info(nas_token, uid)
-
+    step0_get_liked_info(nas_token, uid)
     # step1_create_free_trail(uid, user_token)
 
     # step2_free_trail_over(uid)
 
-    step3_add_lucky_draw(uid)
+    # step3_add_lucky_draw(uid)
 
-    server.close()
+    # server.close()
+
+    #  # 测试抽奖随机不会抽到传递的参数
+    #
+    # for i in range(0, 100):
+    #     step3_add_lucky_draw(uid)
+    #     res = has_lucky_draw(user_token)
+    #
+    #     if res['data']['has_lucky_draw'] == True:
+    #         print('存在抽奖机会')
+    #         lucky_Card = lucky_draw(user_token)
+    #         sleep(1)
+    #
+    #         if lucky_Card['data']['type'] == 1:
+    #             print('VIP折扣卡')
+    #             continue
+    #         if lucky_Card['data']['type'] == 2:
+    #             print(lucky_Card['data']['user']['id'])
+    #             if lucky_Card['data']['user']['id'] == "61246f78e5d21dbf9a5e49cc":
+    #                 print('抽到重复卡片')
+    #                 break
+    #     else:
+    #         print('无抽奖机会')
+    #         step3_add_lucky_draw(uid)
+    #     sleep(1)

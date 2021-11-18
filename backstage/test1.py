@@ -1,3 +1,5 @@
-uid = '21487128471824'
+def is_sensitive_chat_security(wording_no):
+    return wording_no >= 901000 and wording_no <= 901999
 
-print('{{%s}}:dsaj:'%uid)
+
+print(is_sensitive_chat_security(9020000))
