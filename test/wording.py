@@ -791,6 +791,9 @@ if __name__ == '__main__':
     #         continue
     # wb.save('./WooPlus_WordingContent2.xlsx')
 
+    #  新增判断，在woridng文案里的变量，必须要出现在params里，否则报错
+    #  如果wording里的变量个数（$，*）和params_num 里填写的不一致，则报错
+    #  如果en和de参数个数不一致，同样报错
     for index in range(1, wording_table.nrows):
         # 排出LA部分的内容。
         if index in range(1021, 1164):
@@ -801,10 +804,11 @@ if __name__ == '__main__':
             wording_content = wording_content.replace('"', "\\\"")
             params = row_values[3]
             new_result_list = []
-
+            # 匹配$xxx变量
             pattern = re.compile('\$[a-z|A-Z]+')
             result = pattern.findall(wording_content)
 
+            # 匹配*的数量
             gender_pattern = re.compile('\*')
             gender_num = gender_pattern.findall(wording_content)
 
@@ -827,11 +831,11 @@ if __name__ == '__main__':
                 params_num = 0
                 params_gender_num = 0
                 params_num_pattern = re.search('\$:(\d)', params_col)
-                if params_num_pattern != None:
+                if params_num_pattern is not None:
                     params_num = params_num_pattern.group(1)
 
                 params_gender_pattern = re.search('\*:(\d)', params_col)
-                if params_gender_pattern != None:
+                if params_gender_pattern is not None:
                     params_gender_num = params_gender_pattern.group(1)
 
                 if (len(new_result_list) != int(params_num)) or (len(gender_num) != int(params_gender_num)):

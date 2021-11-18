@@ -6,7 +6,6 @@
 # @Remake  :
 import re
 
-a = '变量$:3; *:2'
-params_num_pattern = re.search('\$:(\d)', a)
-params_num = params_num_pattern.group(1)
-print(params_num)
+params_num_pattern = re.search('\$:(\d)', 'xxx')
+if params_num_pattern is None:
+    params_num = params_num_pattern.group(1)
